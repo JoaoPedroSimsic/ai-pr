@@ -1,10 +1,10 @@
-from .git import run_command, pr_exists, create_pull_request, get_git_diff
+from .git import pr_exists, create_pull_request, get_git_diff, get_current_branch
 from .models import get_ai_review, parse_ai_response
 from . import ui
 
 
 def run_workflow(target_branch):
-    current_branch = run_command(["git", "branch", "--show-current"])
+    current_branch = get_current_branch()
 
     if pr_exists(current_branch, target_branch):
         ui.show_warning(
