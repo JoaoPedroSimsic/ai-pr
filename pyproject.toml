@@ -5,8 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "anthropic>=0.76.0",
+    "setuptools>=80.10.2",
 ]
 
 [project.scripts]
-ai-pr="ai_pr.main:main"
+ai-pr="ai_pr.cli:main"
