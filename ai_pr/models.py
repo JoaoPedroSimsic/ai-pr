@@ -6,7 +6,7 @@ from .utils import get_config
 def load_config():
     config = get_config("ai")
 
-    settings = {"diff_limit": "-1", "instructions": ""}
+    settings = {"diff_limit": "", "instructions": ""}
 
     if not config:
         return settings
@@ -14,13 +14,12 @@ def load_config():
     if isinstance(config, dict):
         settings.update(config)
 
-        ui.show_info("AI configuration active:")
         for key, value in settings.items():
             if value:
                 display_value = (
                     f"{str(value)[:30]}..." if len(str(value)) > 30 else value
                 )
-                ui.show_info(f" - {key}: {display_value}")
+                ui.show_info(f"'{key}' loaded with value: {display_value}")
 
     return settings
 
@@ -31,7 +30,10 @@ def get_ai_review(diff, branch_name, commits, target_branch, diff_stat):
     custom_instructions = config.get("instructions", "")
     diff_limit = config.get("diff_limit", "-1")
 
-    limit = int(diff_limit)
+    try:
+        limit = int(diff_limit) if diff_limit and str(diff_limit).strip('-').isdigit() else -1
+    except ValueError:
+        limit = -1
 
     if limit != -1 and len(diff) > limit:
         ui.show_warning(f"Diff exceeds character limit. Truncating to {limit} chars.")

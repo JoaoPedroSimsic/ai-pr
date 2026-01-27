@@ -28,8 +28,10 @@ def get_config(profile):
 
         match profile:
             case "ai":
-                diff_limit = data.get("ai", {}).get("diff_limit", "").strip()
-                instructions = data.get("ai", {}).get("instructions", "-1").strip()
+                ai_section = data.get("ai", {})
+
+                diff_limit = str(ai_section.get("diff_limit") or "").strip()
+                instructions = str(ai_section.get("instructions") or "").strip()
 
                 return {"diff_limit": diff_limit, "instructions": instructions}
             case _:
