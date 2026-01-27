@@ -13,13 +13,19 @@ from . import ui
 def run_workflow(target_branch):
     current_branch = get_current_branch()
 
-    if pr_exists(current_branch, target_branch):
+    if target_branch == current_branch:
         ui.show_warning(
-            f"An open PR already exists for {current_branch} -> {target_branch}"
+            f"You cannot create a PR from '{current_branch}' to itself."
         )
         return
 
-    with ui.show_loading(f"Fetching git diff against {target_branch}..."):
+    if pr_exists(current_branch, target_branch):
+        ui.show_warning(
+            f"An open PR already exists for '{current_branch}' -> '{target_branch}'"
+        )
+        return
+
+    with ui.show_loading(f"Fetching git diff against '{target_branch}'..."):
         diff = get_git_diff(target_branch)
 
     if not diff:
