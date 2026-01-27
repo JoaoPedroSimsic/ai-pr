@@ -1,8 +1,10 @@
+import platform
 import subprocess
 import os
 import tomllib
 
 from .ui import show_error
+from pathlib import Path
 
 
 def run_command(command):
@@ -15,9 +17,18 @@ def run_command(command):
         return None
 
 
+def get_config_path():
+    home = Path.home()
+    system = platform.system()
+
+    if system == "Windows":
+        return home / "AppData" / "Roaming" / "ai-pr" / "ai-pr.toml"
+
+    return home / ".config" / "ai-pr.toml"
+
 def get_config(profile):
-    xdg_config = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
-    config_path = os.path.join(xdg_config, "ai-pr.toml")
+
+    config_path = get_config_path()
 
     if not os.path.exists(config_path):
         return {}
