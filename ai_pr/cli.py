@@ -26,8 +26,8 @@ def main():
         with ui.show_loading("Generating PR draft..."):
             response = get_ai_review(diff)
 
-        if not response:
-            ui.show_error("Claude didn't return a response.")
+        if response == "ERROR: CLAUDE_FETCH_FAILED":
+            ui.show_error("The 'claude' command failed to execute. Please check your CLI setup.")
             return
 
         title, body = parse_ai_response(response)
