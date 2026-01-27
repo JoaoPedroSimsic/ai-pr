@@ -44,7 +44,6 @@ def main():
             else:
                 ui.show_error("Failed to create PR.")
             break
-
         else:
             ui.show_warning("Operation cancelled.")
             break
