@@ -1,41 +1,50 @@
+import sys
+
 from .git import get_git_diff, create_pull_request
 from .models import get_ai_review, parse_ai_response
-
-import sys
+from . import ui
 
 
 def main():
+    ui.show_icon()
+
     if len(sys.argv) < 2:
-        print("💡 Usage: ai-pr <target-branch>")
-        print("Example: ai-pr main")
+        ui.show_warning("Usage: ai-pr <target-branch>")
         return
 
     target_branch = sys.argv[1]
-
-    print(f"🔍 Fetching git diff against {target_branch}...")
-    diff = get_git_diff(target_branch)
+    
+    with ui.show_loading(f"Fetching git diff against {target_branch}..."):
+        diff = get_git_diff(target_branch)
 
     if not diff:
         return
 
-    print("🤖 Sending to Claude...")
+    ui.show_info("Generating initial PR draft...")
 
-    response = get_ai_review(diff)
+    while True:
+        with ui.show_loading("Generating PR draft..."):
+            response = get_ai_review(diff)
 
-    if not response:
-        print("❌ Claude didn't return a response.")
-        return
+        if response == "ERROR: CLAUDE_FETCH_FAILED":
+            ui.show_error("The 'claude' command failed to execute. Please check your CLI setup.")
+            return
 
-    title, body = parse_ai_response(response)
+        title, body = parse_ai_response(response)
 
-    if not title or not body:
-        print("⚠️ Parsing error: Check Claude's response format.")
-        return
+        if not title or not body:
+            ui.show_warning("Parsing error: Unexpected format.")
+            return
 
-    print(f"\n--- Draft PR ---\nTITLE: {title}\nBODY: {body}\n----------------\n")
+        ui.display_draft(title, body)
+        choice = ui.get_action_choice()
 
-    if input(f"Create PR into '{target_branch}'? (y/n): ").lower() == "y":
-        if create_pull_request(title, body, target_branch):
-            print("🚀 PR successfully created!")
+        if choice == "create":
+            if create_pull_request(title, body, target_branch):
+                ui.show_success("PR successfully created!")
+            else:
+                ui.show_error("Failed to create PR.")
+            break
         else:
-            print("❌ Failed to create PR.")
+            ui.show_warning("Operation cancelled.")
+            break

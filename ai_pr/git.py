@@ -1,5 +1,7 @@
 import subprocess
 
+from . import ui
+
 
 def branch_exists(branch_name):
     result = subprocess.run(
@@ -15,13 +17,15 @@ def run_command(command):
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return result.stdout.strip()
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        if e.stderr:
+            ui.show_error(f"\nCLI Error: {e.stderr.strip()}")
         return None
 
 
 def get_git_diff(base_branch=None):
     if not branch_exists(base_branch):
-        print(f"❌ Error: The branch '{base_branch}' does not exist on origin.")
+        ui.show_error(f"Error: The branch '{base_branch}' does not exist on origin.")
         return None
 
     diff = run_command(
@@ -29,6 +33,7 @@ def get_git_diff(base_branch=None):
     )
 
     if diff:
+        ui.show_info(f"Successfully fetched branch diff")
         return diff
 
     return None

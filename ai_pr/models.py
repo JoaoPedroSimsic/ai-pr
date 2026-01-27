@@ -9,10 +9,18 @@ def get_ai_review(diff):
         f"BODY: [Your Description]\n\n"
         f"Diff:\n{diff}"
     )
-    return run_command(["claude", "-p", prompt])
+    response = run_command(["claude", "-p", prompt])
+
+    if response is None:
+        return "ERROR: CLAUDE_FETCH_FAILED"
+
+    return response
 
 
 def parse_ai_response(response):
+    if response == "ERROR: CLAUDE_FETCH_FAILED":
+        return None, None
+
     try:
         title = response.split("TITLE:")[1].split("BODY:")[0].strip()
         body = response.split("BODY:")[1].strip()
