@@ -1,7 +1,5 @@
 from .git import run_command
 
-from . import ui
-
 
 def get_ai_review(diff):
     prompt = (
@@ -15,6 +13,8 @@ def get_ai_review(diff):
 
     if response is None:
         return "ERROR: CLAUDE_FETCH_FAILED"
+
+    return response
 
 
 def parse_ai_response(response):
