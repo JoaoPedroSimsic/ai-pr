@@ -35,7 +35,8 @@ def run_workflow(target_branch):
 
     extra_instructions = get_config("ai")
 
-    print(f"instructions: {extra_instructions}")
+    if extra_instructions:
+        ui.show_info("AI config loaded successfully.")
 
     refinement_notes = ""
 
