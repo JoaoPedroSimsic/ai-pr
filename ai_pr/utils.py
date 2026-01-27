@@ -17,7 +17,7 @@ def run_command(command):
 
 def get_config(profile="ai"):
     xdg_config = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
-    config_path = os.path.join(xdg_config, ".ai-pr")
+    config_path = os.path.join(xdg_config, "ai-pr")
 
     if not os.path.exists(config_path):
         return ""
