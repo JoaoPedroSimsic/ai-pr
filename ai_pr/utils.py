@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import os
 import tomllib
@@ -16,8 +17,18 @@ def run_command(command):
         return None
 
 
+def get_config_path():
+    home = Path.home()
+    system = platform.system()
+
+    if system == "Windows":
+        return home / "AppData" / "Roaming" / "ai-pr" / "ai-pr.toml"
+
+    return home / ".config" / "ai-pr.toml"
+
 def get_config(profile):
-    config_path = Path.home() / ".config" / "ai-pr.toml"
+
+    config_path = get_config_path()
 
     if not os.path.exists(config_path):
         return {}
