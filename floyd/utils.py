@@ -22,9 +22,9 @@ def get_config_path():
     system = platform.system()
 
     if system == "Windows":
-        return home / "AppData" / "Roaming" / "ai-pr" / "ai-pr.toml"
+        return home / "AppData" / "Roaming" / "floyd" / "floyd.toml"
 
-    return home / ".config" / "ai-pr.toml"
+    return home / ".config" / "floyd.toml"
 
 def get_config(profile):
 
