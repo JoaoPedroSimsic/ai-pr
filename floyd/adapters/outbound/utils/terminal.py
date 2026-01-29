@@ -21,7 +21,7 @@ class Terminal:
         except subprocess.CalledProcessError as e:
             detail = e.stderr.strip() or str(e)
 
-            raise PRGenerationException(f"{error_msg}: {detail}") from e
+            raise PRGenerationException(f"{error_msg}: {detail}") from None
         except FileNotFoundError:
             raise PRGenerationException(
                 f"The tool '{cmd_list[0]}' was not found. Please ensure it is installed."
