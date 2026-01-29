@@ -10,8 +10,13 @@ class GeminiAdapter(AIAdapter):
     ) -> PullRequest:
         prompt = self._build_prompt(context, config, feedback)
 
-        response = self.terminal.run(
-            ["gemini", "-p", prompt], error_msg="Gemini CLI error"
-        )
+        command = ["gemini"]
+
+        if config.model:
+            command.extend(["--model", config.model])
+
+        command.extend(["-p", prompt])
+
+        response = self.terminal.run(command)
 
         return self._parse_response(response)

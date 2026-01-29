@@ -37,6 +37,6 @@ class ClaudeAdapter(AIAdapter):
 
         command.extend(["-p", prompt])
 
-        response = self.terminal.run(["claude", "-p", prompt])
+        response = self.terminal.run(command)
 
         return self._parse_response(response)
