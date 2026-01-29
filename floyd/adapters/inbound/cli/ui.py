@@ -1,5 +1,3 @@
-"""Terminal UI utilities for CLI adapter."""
-
 from contextlib import contextmanager
 from typing import Generator
 
@@ -40,16 +38,6 @@ ICON = """
 
 
 def _get_transition_color(start_hex: str, end_hex: str, fraction: float) -> str:
-    """Calculate transition color between two hex colors.
-
-    Args:
-        start_hex: Starting color in hex format.
-        end_hex: Ending color in hex format.
-        fraction: Fraction between 0 and 1 for interpolation.
-
-    Returns:
-        RGB color string.
-    """
     start_rgb = Color.parse(start_hex).get_truecolor()
     end_rgb = Color.parse(end_hex).get_truecolor()
 
@@ -61,7 +49,6 @@ def _get_transition_color(start_hex: str, end_hex: str, fraction: float) -> str:
 
 
 def show_icon() -> None:
-    """Display the Floyd ASCII art logo with gradient colors."""
     stretch = 1.0
 
     lines = ICON.splitlines()
@@ -87,33 +74,15 @@ def show_icon() -> None:
 
 
 def show_error(message: str) -> None:
-    """Display an error message.
-
-    Args:
-        message: Error message to display.
-    """
     console.print(f"[bold red]{message}[/bold red]")
 
 
 def show_info(message: str) -> None:
-    """Display an info message.
-
-    Args:
-        message: Info message to display.
-    """
     console.print(f"[gray]{message}[/gray]")
 
 
 @contextmanager
 def show_loading(message: str = "Working...") -> Generator[Status, None, None]:
-    """Display a loading spinner.
-
-    Args:
-        message: Loading message to display.
-
-    Yields:
-        Rich Status object.
-    """
     with console.status(
         f"[gray]{message}[/gray]",
         spinner="dots",
@@ -123,25 +92,14 @@ def show_loading(message: str = "Working...") -> Generator[Status, None, None]:
 
 
 def show_warning(message: str) -> None:
-    """Display a warning message.
-
-    Args:
-        message: Warning message to display.
-    """
     console.print(f"[bold yellow]{message}[/bold yellow]")
 
 
 def show_success(message: str) -> None:
-    """Display a success message.
-
-    Args:
-        message: Success message to display.
-    """
     console.print(f"[bold green]{message}[/bold green]")
 
 
 def _get_gradient_text(text: str, bold: bool = True) -> Text:
-    """Creates a Rich Text object with a color gradient."""
     if not text:
         return Text("")
 
@@ -159,11 +117,6 @@ def _get_gradient_text(text: str, bold: bool = True) -> Text:
 
 
 def display_draft(pr: PullRequest) -> None:
-    """Display a PR draft in a formatted panel.
-
-    Args:
-        pr: PullRequest entity to display.
-    """
     padding = (1, 3)
 
     console.print(
@@ -188,20 +141,10 @@ def display_draft(pr: PullRequest) -> None:
 
 
 def get_refinement_feedback() -> str:
-    """Prompt user for refinement feedback.
-
-    Returns:
-        User's feedback string.
-    """
     return Prompt.ask("[bold yellow]What should I change?[/bold yellow]")
 
 
 def get_action_choice() -> str | None:
-    """Prompt user to choose an action.
-
-    Returns:
-        User's choice: 'create', 'refine', or 'cancel'. None if interrupted.
-    """
     custom_style = questionary.Style(
         [
             ("qmark", f"fg:{SEC_COLOR} bold"),

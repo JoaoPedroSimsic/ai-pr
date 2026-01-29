@@ -1,11 +1,7 @@
-"""Branch value object."""
-
 from pydantic import BaseModel, field_validator
 
 
 class Branch(BaseModel):
-    """Represents a git branch with validation."""
-
     name: str
 
     model_config = {"frozen": True}
@@ -13,7 +9,6 @@ class Branch(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
-        """Validate branch name is not empty and has valid format."""
         if not v or not v.strip():
             raise ValueError("Branch name cannot be empty")
         v = v.strip()

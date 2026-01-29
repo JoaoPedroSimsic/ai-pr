@@ -1,5 +1,3 @@
-"""Dependency injection container - Composition root."""
-
 from dataclasses import dataclass
 
 from floyd.adapters.outbound.ai.claude_adapter import ClaudeAdapter
@@ -21,8 +19,6 @@ from floyd.domain.value_objects.ai_provider import ProviderType
 
 @dataclass
 class Container:
-    """Dependency injection container holding all wired dependencies."""
-
     ai_service: AIServicePort
     git_repository: GitRepositoryPort
     pr_repository: PRRepositoryPort
@@ -31,11 +27,6 @@ class Container:
 
 
 def create_container() -> Container:
-    """Create and wire all dependencies.
-
-    Returns:
-        Container with all dependencies wired.
-    """
     terminal = Terminal()
     config = TomlConfigAdapter()
 

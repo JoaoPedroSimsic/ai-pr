@@ -1,5 +1,3 @@
-"""PR Generation Service - Main use case implementation."""
-
 from floyd.application.ports.inbound.pr_generation_port import PRGenerationPort
 from floyd.application.ports.outbound.ai_service_port import AIServicePort
 from floyd.application.ports.outbound.config_port import ConfigPort
@@ -18,7 +16,6 @@ from floyd.domain.value_objects.branch import Branch
 
 
 class PRGenerationService(PRGenerationPort):
-    """Service that orchestrates PR generation."""
 
     def __init__(
         self,
@@ -27,31 +24,12 @@ class PRGenerationService(PRGenerationPort):
         pr_repository: PRRepositoryPort,
         config: ConfigPort,
     ) -> None:
-        """Initialize service with required ports.
-
-        Args:
-            ai_service: AI service for generating PR content.
-            git_repository: Git repository for branch operations.
-            pr_repository: PR repository for PR operations.
-            config: Configuration provider.
-        """
         self._ai_service = ai_service
         self._git_repository = git_repository
         self._pr_repository = pr_repository
         self._config = config
 
     def validate_can_create_pr(self, current_branch: str, target_branch: str) -> None:
-        """Validate that a PR can be created.
-
-        Args:
-            current_branch: Current working branch.
-            target_branch: Target branch for the PR.
-
-        Raises:
-            InvalidBranchException: If branches are the same.
-            BranchNotFoundException: If target branch doesn't exist.
-            PRAlreadyExistsException: If PR already exists.
-        """
         if current_branch == target_branch:
             raise InvalidBranchException(
                 f"Cannot create PR: source and target branch are the same ({current_branch})"
@@ -64,14 +42,6 @@ class PRGenerationService(PRGenerationPort):
             raise PRAlreadyExistsException(current_branch, target_branch)
 
     def get_git_context(self, target_branch: str) -> GitContext:
-        """Gather git context for PR generation.
-
-        Args:
-            target_branch: Target branch for the PR.
-
-        Returns:
-            GitContext with all relevant information.
-        """
         current_branch = self._git_repository.get_current_branch()
         commits = self._git_repository.get_commits(target_branch)
         diff = self._git_repository.get_diff(target_branch)
@@ -90,26 +60,8 @@ class PRGenerationService(PRGenerationPort):
         context: GitContext,
         feedback: str | None = None,
     ) -> PullRequest:
-        """Generate a PR draft from git context.
-
-        Args:
-            context: Git context with branch info, commits, and diff.
-            feedback: Optional feedback for refining the draft.
-
-        Returns:
-            Generated PullRequest entity.
-        """
         ai_config = self._config.get_ai_config()
         return self._ai_service.generate_draft(context, ai_config, feedback)
 
     def create_pr(self, pr: PullRequest, base_branch: str) -> str:
-        """Create a pull request.
-
-        Args:
-            pr: PullRequest entity with title and body.
-            base_branch: Target branch for the PR.
-
-        Returns:
-            URL of the created PR.
-        """
         return self._pr_repository.create_pr(pr, base_branch)
