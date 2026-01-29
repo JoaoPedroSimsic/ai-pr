@@ -13,6 +13,10 @@ from floyd.application.ports.outbound.git_repository_port import GitRepositoryPo
 from floyd.application.ports.outbound.pr_repository_port import PRRepositoryPort
 from floyd.application.services.pr_generation_service import PRGenerationService
 from floyd.adapters.outbound.utils.terminal import Terminal
+from floyd.domain.exceptions.ai.invalid_provider_exception import (
+    InvalidProviderException,
+)
+from floyd.domain.value_objects.ai_provider import ProviderType
 
 
 @dataclass
@@ -37,11 +41,20 @@ def create_container() -> Container:
 
     settings = config.get_ai_config()
 
-    if settings.provider == "claude":
-        ai_service = ClaudeAdapter(terminal)
-    else:
-        ai_service = GeminiAdapter(terminal)
+    ADAPTER_MAP = {
+        ProviderType.CLAUDE: ClaudeAdapter,
+        ProviderType.GEMINI: GeminiAdapter,
+    }
 
+    try:
+        adapter_class = ADAPTER_MAP.get(settings.provider)
+    except ValueError:
+        adapter_class = None
+
+    if not adapter_class:
+        raise InvalidProviderException(f"No adapter registered for {settings.provider}")
+
+    ai_service = adapter_class(terminal)
     git_repository = GitCLIAdapter(terminal)
     pr_repository = GitHubCLIAdapter(terminal)
 
