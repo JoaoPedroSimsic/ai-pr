@@ -97,7 +97,7 @@ class CLIAdapter:
             ui.show_warning("No changes found to create a PR.")
             return 1
 
-        ui.show_info("Successfully fetched branch diff")
+        ui.show_info("Branch diff fetched successfully.")
 
         feedback: str | None = None
 
@@ -105,6 +105,7 @@ class CLIAdapter:
             with ui.show_loading("Generating PR draft..."):
                 try:
                     pr = self._pr_service.generate_draft(context, feedback)
+                    ui.show_info("PR draft created successfully.")
                 except PRGenerationException as e:
                     ui.show_error(f"Failed to generate PR: {e.message}")
                     return 1
