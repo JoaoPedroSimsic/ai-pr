@@ -11,6 +11,7 @@ from floyd.application.ports.outbound.config_port import ConfigPort
 from floyd.application.ports.outbound.git_repository_port import GitRepositoryPort
 from floyd.application.ports.outbound.pr_repository_port import PRRepositoryPort
 from floyd.application.services.pr_generation_service import PRGenerationService
+from floyd.adapters.outbound.utils.terminal import Terminal
 
 
 @dataclass
@@ -30,9 +31,10 @@ def create_container() -> Container:
     Returns:
         Container with all dependencies wired.
     """
-    ai_service = ClaudeAdapter()
-    git_repository = GitCLIAdapter()
-    pr_repository = GitHubCLIAdapter()
+    terminal = Terminal()
+    ai_service = ClaudeAdapter(terminal)
+    git_repository = GitCLIAdapter(terminal)
+    pr_repository = GitHubCLIAdapter(terminal)
     config = TomlConfigAdapter()
 
     pr_generation_service = PRGenerationService(
