@@ -30,6 +30,13 @@ class ClaudeAdapter(AIAdapter):
         """
         prompt = self._build_prompt(context, config, feedback)
 
+        command = ["claude"]
+
+        if config.model:
+            command.extend(["--model", config.model])
+
+        command.extend(["-p", prompt])
+
         response = self.terminal.run(["claude", "-p", prompt])
 
         return self._parse_response(response)
