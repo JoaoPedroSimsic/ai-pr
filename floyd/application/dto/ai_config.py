@@ -2,12 +2,13 @@
 
 from pydantic import BaseModel, Field
 
+from floyd.domain.value_objects.ai_provider import ProviderType
+
 
 class AIConfig(BaseModel):
     """Configuration for AI service."""
 
-    provider: str = Field(
-        default="claude",
+    provider: ProviderType = Field(
         description="The AI provider to use (e.g., 'claude', 'gemini', 'copilot')."
     )
 
