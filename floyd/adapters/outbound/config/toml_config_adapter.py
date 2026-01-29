@@ -1,5 +1,3 @@
-"""TOML Config Adapter - Implements ConfigPort using TOML files."""
-
 import platform
 import tomllib
 from pathlib import Path
@@ -16,22 +14,11 @@ from floyd.domain.value_objects.ai_provider import AIProvider
 
 
 class TomlConfigAdapter(ConfigPort):
-    """Configuration adapter using TOML files."""
 
     def __init__(self, config_path: Path | None = None) -> None:
-        """Initialize adapter with optional custom config path.
-
-        Args:
-            config_path: Custom path to config file. If None, uses default.
-        """
         self._config_path = config_path or self._get_default_config_path()
 
     def _get_default_config_path(self) -> Path:
-        """Get the default configuration file path based on OS.
-
-        Returns:
-            Path to the configuration file.
-        """
         home = Path.home()
         system = platform.system()
 
@@ -41,11 +28,6 @@ class TomlConfigAdapter(ConfigPort):
         return home / ".config" / "floyd.toml"
 
     def get_ai_config(self) -> AIConfig:
-        """Load AI configuration from TOML file.
-
-        Returns:
-            AIConfig with settings from file or defaults.
-        """
         if not self._config_path.exists():
             raise InvalidConfigException(
                 f"Configuration file not found at {self._config_path}. "

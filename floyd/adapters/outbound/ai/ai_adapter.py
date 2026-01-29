@@ -57,17 +57,6 @@ class AIAdapter(AIServicePort, ABC):
         return prompt
 
     def _parse_response(self, response: str) -> PullRequest:
-        """Parse Claude's response into a PullRequest.
-
-        Args:
-            response: Raw response from Claude.
-
-        Returns:
-            PullRequest entity.
-
-        Raises:
-            PRGenerationException: If parsing fails.
-        """
         try:
             title = response.split("TITLE:")[1].split("BODY:")[0].strip()
             body = response.split("BODY:")[1].strip()

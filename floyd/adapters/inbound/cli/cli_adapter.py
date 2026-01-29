@@ -1,5 +1,3 @@
-"""CLI Adapter - Primary adapter for command-line interface."""
-
 import sys
 
 from floyd.adapters.inbound.cli import ui
@@ -17,31 +15,15 @@ from floyd.domain.exceptions.pr.pr_generation_exception import PRGenerationExcep
 
 
 class CLIAdapter:
-    """Command-line interface adapter for Floyd."""
-
     def __init__(
         self,
         pr_generation_service: PRGenerationPort,
         git_repository: GitRepositoryPort,
     ) -> None:
-        """Initialize CLI adapter with required services.
-
-        Args:
-            pr_generation_service: Service for PR generation.
-            git_repository: Git repository for validation.
-        """
         self._pr_service = pr_generation_service
         self._git_repository = git_repository
 
     def run(self, args: list[str]) -> int:
-        """Run the CLI application.
-
-        Args:
-            args: Command-line arguments (excluding program name).
-
-        Returns:
-            Exit code (0 for success, non-zero for errors).
-        """
         if len(args) < 1:
             ui.show_warning("Usage: floyd <target-branch>")
             return 1
@@ -62,14 +44,6 @@ class CLIAdapter:
             return 0
 
     def _run_workflow(self, target_branch: str) -> int:
-        """Execute the PR generation workflow.
-
-        Args:
-            target_branch: Target branch for the PR.
-
-        Returns:
-            Exit code.
-        """
         current_branch = self._git_repository.get_current_branch()
 
         with ui.show_loading("Initializing workflow...") as status:
@@ -144,7 +118,6 @@ class CLIAdapter:
 
 
 def main() -> None:
-    """Entry point for the CLI application."""
     from floyd.container import create_container
 
     try:
@@ -158,7 +131,7 @@ def main() -> None:
         sys.exit(cli.run(sys.argv[1:]))
     except DomainException as e:
         ui.show_error(e.message)
-        
+
         sys.exit(1)
     except Exception as e:
         ui.show_error(f"An unexpected error occurred: {str(e)}")
