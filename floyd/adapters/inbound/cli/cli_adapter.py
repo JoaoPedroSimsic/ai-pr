@@ -72,24 +72,26 @@ class CLIAdapter:
         """
         current_branch = self._git_repository.get_current_branch()
 
-        try:
-            self._pr_service.validate_can_create_pr(current_branch, target_branch)
-        except InvalidBranchException as e:
-            ui.show_warning(e.message)
-            return 1
-        except BranchNotFoundException as e:
-            ui.show_error(
-                f"Error: The branch '{e.branch_name}' does not exist on origin."
-            )
-            return 1
-        except PRAlreadyExistsException as e:
-            ui.show_warning(
-                f"An open PR already exists for '{e.head_branch}' -> '{e.base_branch}'"
-            )
-            return 1
+        with ui.show_loading("Initializing workflow...") as status:
+            try:
+                status.update("[gray]Checking remote branches (network)...[/gray]")
+                self._pr_service.validate_can_create_pr(current_branch, target_branch)
 
-        with ui.show_loading(f"Fetching git diff against '{target_branch}'..."):
-            context = self._pr_service.get_git_context(target_branch)
+                status.update(f"[gray]Fetching git diff against '{target_branch}'...[/gray]")
+                context = self._pr_service.get_git_context(target_branch)
+            except InvalidBranchException as e:
+                ui.show_warning(e.message)
+                return 1
+            except BranchNotFoundException as e:
+                ui.show_error(
+                    f"Error: The branch '{e.branch_name}' does not exist on origin."
+                )
+                return 1
+            except PRAlreadyExistsException as e:
+                ui.show_warning(
+                    f"An open PR already exists for '{e.head_branch}' -> '{e.base_branch}'"
+                )
+                return 1
 
         if not context.has_changes():
             ui.show_warning("No changes found to create a PR.")
