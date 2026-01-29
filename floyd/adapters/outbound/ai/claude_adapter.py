@@ -1,31 +1,18 @@
 """Claude AI Adapter - Implements AIServicePort using Claude CLI."""
 
-import subprocess
-
 from floyd.application.dto.ai_config import AIConfig
 from floyd.application.ports.outbound.ai_service_port import AIServicePort
 from floyd.domain.entities.git_context import GitContext
 from floyd.domain.entities.pull_request import PullRequest
 from floyd.domain.exceptions.pr.pr_generation_exception import PRGenerationException
+from floyd.adapters.outbound.utils.terminal import Terminal
 
 
 class ClaudeAdapter(AIServicePort):
     """AI service adapter using Claude CLI."""
 
-    def _run_command(self, command: list[str]) -> str | None:
-        """Execute a command and return output.
-
-        Args:
-            command: Command and arguments to execute.
-
-        Returns:
-            Command output or None if failed.
-        """
-        try:
-            result = subprocess.run(command, capture_output=True, text=True, check=True)
-            return result.stdout.strip()
-        except subprocess.CalledProcessError:
-            return None
+    def __init__(self, terminal: Terminal):
+        self.terminal = terminal
 
     def _build_prompt(
         self,
@@ -126,9 +113,6 @@ class ClaudeAdapter(AIServicePort):
         """
         prompt = self._build_prompt(context, config, feedback)
 
-        response = self._run_command(["claude", "-p", prompt])
-
-        if response is None:
-            raise PRGenerationException("Failed to get response from Claude CLI")
+        response = self.terminal.run(["claude", "-p", prompt])
 
         return self._parse_response(response)
