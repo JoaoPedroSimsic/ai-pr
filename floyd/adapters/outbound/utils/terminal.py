@@ -36,7 +36,7 @@ class Terminal:
         try:
             result = subprocess.run(
                 cmd_list,
-                input=input_data, 
+                input=input_data,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -51,5 +51,7 @@ class Terminal:
             raise UnexpectedException(f"{error_msg}: {detail}") from None
 
         except FileNotFoundError:
-            cmd_name = cmd_list[0] if isinstance(cmd_list, list) else cmd_list.split()[0]
+            cmd_name = (
+                cmd_list[0] if isinstance(cmd_list, list) else cmd_list.split()[0]
+            )
             raise MissingDependencyException(cmd_name)
