@@ -7,6 +7,12 @@ class GitCLIAdapter(GitRepositoryPort):
     def __init__(self, terminal: Terminal):
         self.terminal = terminal
 
+    def fetch(self) -> None:
+        self.terminal.run(
+            ["git", "fetch", "origin", "--prune"],
+            error_msg="Failed to sync with remote repository.",
+        )
+
     def is_git_repo(self) -> bool:
         try:
             self.terminal.run(["git", "rev-parse", "--is-inside-work-tree"])
@@ -44,7 +50,7 @@ class GitCLIAdapter(GitRepositoryPort):
             [
                 "git",
                 "diff",
-                f"{base_branch}..HEAD",
+                f"origin/{base_branch}..HEAD",
                 ":!*.lock",
                 ":!*-lock.json",
             ]
@@ -57,7 +63,7 @@ class GitCLIAdapter(GitRepositoryPort):
                 "git",
                 "diff",
                 "--stat",
-                f"{base_branch}..HEAD",
+                f"origin/{base_branch}..HEAD",
                 ":!*.lock",
                 ":!*-lock.json",
             ]
