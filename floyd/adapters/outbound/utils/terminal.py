@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 import platform
 import shlex
 from rich.console import Console
@@ -13,6 +14,13 @@ class Terminal:
     def __init__(self) -> None:
         self.console = Console()
         self._is_windows = platform.system() == "Windows"
+
+    def is_installed(self, tool: str) -> bool:
+        return shutil.which(tool) is not None
+
+    def ensure_installed(self, tool: str) -> None:
+        if not self.is_installed(tool):
+            raise MissingDependencyException(tool)
 
     def run(
         self,
