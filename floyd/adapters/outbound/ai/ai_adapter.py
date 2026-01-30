@@ -14,7 +14,7 @@ class AIAdapter(AIServicePort, ABC):
     def __init__(self, terminal: Terminal):
         self.terminal = terminal
 
-    def _build_prompt(
+    def _build_pr_prompt(
         self,
         context: GitContext,
         config: AIConfig,

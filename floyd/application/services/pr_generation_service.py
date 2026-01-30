@@ -57,13 +57,13 @@ class PRGenerationService(PRGenerationPort):
             diff_stat=diff_stat,
         )
 
-    def generate_draft(
+    def generate_pr_draft(
         self,
         context: GitContext,
         feedback: str | None = None,
     ) -> PullRequest:
         ai_config = self._config.get_ai_config()
-        return self._ai_service.generate_draft(context, ai_config, feedback)
+        return self._ai_service.generate_pr(context, ai_config, feedback)
 
     def create_pr(self, pr: PullRequest, base_branch: str) -> str:
         return self._pr_repository.create_pr(pr, base_branch)

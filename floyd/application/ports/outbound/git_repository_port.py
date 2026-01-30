@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from floyd.domain.entities.commit import Commit
+
 
 class GitRepositoryPort(ABC):
 
@@ -29,4 +31,10 @@ class GitRepositoryPort(ABC):
 
     @abstractmethod
     def get_diff_stat(self, base_branch: str) -> str:
+        ...
+
+    def get_staged_diff(self) -> str:
+        ...
+
+    def commit(self, commit: Commit) -> str:
         ...

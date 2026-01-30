@@ -24,8 +24,8 @@ class CLIAdapter:
         self._git_repository = git_repository
 
     def run(self, args: list[str]) -> int:
-        if len(args) < 1:
-            ui.show_warning("Usage: floyd <target-branch>")
+        if len(args) < 2:
+            ui.show_warning("Usage: floyd <pr|commit> <target-branch>")
             return 1
 
         if not self._git_repository.is_git_repo():
@@ -34,16 +34,23 @@ class CLIAdapter:
 
         ui.show_icon()
 
-        target_branch = args[0]
+        mode = args[0].lower()
+        target_branch = args[1]
 
         try:
-            return self._run_workflow(target_branch)
+            if mode == "pr":
+                return self._run_pr_workflow(target_branch)
+            elif mode == "commit":
+                return self._run_commit_workflow()
+            else:
+                ui.show_error(f"Unknown mode: {mode}. Use 'pr' or 'commit'.")
+                return 1
         except KeyboardInterrupt:
             print("")
             ui.show_warning("Operation cancelled by user.")
             return 0
 
-    def _run_workflow(self, target_branch: str) -> int:
+    def _run_pr_workflow(self, target_branch: str) -> int:
         current_branch = self._git_repository.get_current_branch()
 
         with ui.show_loading("Initializing workflow...") as status:
@@ -51,7 +58,9 @@ class CLIAdapter:
                 status.update("[gray]Checking remote branches (network)...[/gray]")
                 self._pr_service.validate_can_create_pr(current_branch, target_branch)
 
-                status.update(f"[gray]Fetching git diff against '{target_branch}'...[/gray]")
+                status.update(
+                    f"[gray]Fetching git diff against '{target_branch}'...[/gray]"
+                )
                 context = self._pr_service.get_git_context(target_branch)
             except InvalidBranchException as e:
                 ui.show_warning(e.message)
@@ -115,6 +124,43 @@ class CLIAdapter:
                 break
 
         return 0
+
+
+def _run_commit_workflow(self) -> int:
+    diff = self._git_repository.get_staged_diff()
+
+    if not diff or not diff.strip():
+        ui.show_warning("No staged changes found. Use 'git add' to stage files first.")
+        return 1
+
+    ui.show_info("Staged changes detected.")
+    feedback: str | None = None
+
+    while True:
+        with ui.show_loading("Generating commit message..."):
+            try:
+                commit_draft = self._pr_service_generate_commit(diff, feedback)
+            except Exception as e:
+                ui.show_error(f"Failed to generate commit: {str(e)}")
+                return 1
+
+        ui.display_draft(commit_draft)
+        
+        choice = ui.get_action_choice()
+
+        if choice == "create":
+            with ui.show_loading("Committing changes..."):
+                self._git_repository.commit(commit_draft)
+                ui.show_success("Changes committed successfully.")
+            break
+        elif choice == "refine":
+            feedback = ui.get_refinement_feedback()
+            continue
+        else:
+            ui.show_warning("Commit cancelled")
+            break
+
+    return 0
 
 
 def main() -> None:

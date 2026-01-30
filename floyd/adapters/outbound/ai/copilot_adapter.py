@@ -6,13 +6,13 @@ from floyd.domain.entities.pull_request import PullRequest
 
 class CopilotAdapter(AIAdapter):
 
-    def generate_draft(
+    def generate_pr(
         self,
         context: GitContext,
         config: AIConfig,
         feedback: str | None = None,
     ) -> PullRequest:
-        prompt = self._build_prompt(context, config, feedback)
+        prompt = self._build_pr_prompt(context, config, feedback)
 
         command = ["copilot", "-p", "-"]
 
