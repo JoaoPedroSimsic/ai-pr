@@ -18,7 +18,6 @@ class GitCLIAdapter(GitRepositoryPort):
         return result.returncode == 0
 
     def branch_exists(self, branch_name: str) -> bool:
-        # First, try to see if we know about this branch locally (faster/more reliable)
         local_check = subprocess.run(
             ["git", "show-ref", "--verify", f"refs/remotes/origin/{branch_name}"],
             capture_output=True,
@@ -27,7 +26,6 @@ class GitCLIAdapter(GitRepositoryPort):
         if local_check.returncode == 0:
             return True
 
-        # Fallback: check if it's a local branch that hasn't been pushed yet
         local_only_check = subprocess.run(
             ["git", "show-ref", "--verify", f"refs/heads/{branch_name}"],
             capture_output=True,
