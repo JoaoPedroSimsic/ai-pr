@@ -13,12 +13,23 @@ class Terminal:
     def __init__(self):
         self.console = Console()
 
-    def run(self, command: list[str] | str, error_msg: str = "Command Failed") -> str:
+    def run(
+        self,
+        command: list[str] | str,
+        input_data: str | None = None,
+        error_msg: str = "Command Failed",
+    ) -> str:
         cmd_list = shlex.split(command) if isinstance(command, str) else command
 
         try:
             result = subprocess.run(
-                cmd_list, capture_output=True, text=True, check=True, encoding='utf-8', shell=(platform.system() == "Windows")
+                cmd_list,
+                input=input_data,
+                capture_output=True,
+                text=True,
+                check=True,
+                encoding="utf-8",
+                shell=(platform.system() == "Windows"),
             )
 
             return result.stdout.strip()

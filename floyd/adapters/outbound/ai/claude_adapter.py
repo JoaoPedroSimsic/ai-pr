@@ -21,7 +21,7 @@ class ClaudeAdapter(AIAdapter):
             command.extend(["--model", config.model])
             ui.show_info(f"Claude is using the model: {config.model}")
 
-        command.extend(["-p", prompt])
+        command.extend(["-p", prompt, "-"])
 
         response = self.terminal.run(command, error_msg="Claude Code")
 
