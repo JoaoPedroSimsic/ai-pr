@@ -1,6 +1,7 @@
 import subprocess
 from rich.console import Console
 import shlex
+import platform
 
 from floyd.domain.exceptions.terminal.missing_dependency_exception import (
     MissingDependencyException,
@@ -17,7 +18,7 @@ class Terminal:
 
         try:
             result = subprocess.run(
-                cmd_list, capture_output=True, text=True, check=True, encoding='utf-8'
+                cmd_list, capture_output=True, text=True, check=True, encoding='utf-8', shell=(platform.system() == "Windows")
             )
 
             return result.stdout.strip()

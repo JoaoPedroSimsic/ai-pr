@@ -58,7 +58,11 @@ class AIAdapter(AIServicePort, ABC):
 
     def _parse_response(self, response: str) -> PullRequest:
         try:
-            title = response.split("TITLE:")[1].split("BODY:")[0].strip()
+            print(response)
+            
+            # Using split as requested, but with careful indexing
+            title_part = response.split("TITLE:")[1]
+            title = title_part.split("BODY:")[0].strip()
             body = response.split("BODY:")[1].strip()
 
             if not title or not body:
