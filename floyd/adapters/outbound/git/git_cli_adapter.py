@@ -46,7 +46,7 @@ class GitCLIAdapter(GitRepositoryPort):
             [
                 "git",
                 "diff",
-                f"{base_branch}..HEAD"
+                f"{base_branch}..HEAD",
                 ":!*.lock",
                 ":!*-lock.json",
             ]
@@ -59,7 +59,7 @@ class GitCLIAdapter(GitRepositoryPort):
                 "git",
                 "diff",
                 "--stat",
-                f"{base_branch}..HEAD"
+                f"{base_branch}..HEAD",
                 ":!*.lock",
                 ":!*-lock.json",
             ]
