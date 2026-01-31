@@ -31,7 +31,7 @@ class AIAdapter(AIServicePort, ABC):
         if config.diff_limit > 0 and len(diff) > config.diff_limit:
             diff = diff[:config.diff_limit] + "\n\n[... DIFF TRUNCATED ...]"
 
-        instructions = f"\nUSER-SPECIFIC INSTRUCTIONS:\n{config.instructions}" if config.instructions else ""
+        instructions = f"\nUSER-SPECIFIC INSTRUCTIONS:\n{config.pr_instructions}" if config.pr_instructions else ""
         feedback_section = f"\nUSER FEEDBACK:\n{feedback}" if feedback else ""
 
         prompt = template.replace("{{current_branch}}", context.current_branch.name)
@@ -58,7 +58,7 @@ class AIAdapter(AIServicePort, ABC):
         if config.diff_limit > 0 and len(diff) > config.diff_limit:
             diff = diff[:config.diff_limit] + "\n\n[... DIFF TRUNCATED ...]"
 
-        instructions = f"\nUSER-SPECIFIC INSTRUCTIONS:\n{config.instructions}" if config.instructions else ""
+        instructions = f"\nUSER-SPECIFIC INSTRUCTIONS:\n{config.commit_instructions}" if config.commit_instructions else ""
         feedback_section = f"\nUSER FEEDBACK:\n{feedback}" if feedback else ""
 
         prompt = template.replace("{{diff}}", diff)

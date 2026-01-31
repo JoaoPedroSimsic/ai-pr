@@ -74,6 +74,16 @@ def show_icon() -> None:
         console.print(rich_line)
 
 
+def show_config(provider: str, model: str) -> None:
+    model_info = f" ({model})" if model else ""
+    console.print(f"[gray]Using provider:[/gray] [bold]{provider}[/bold]{model_info}")
+
+
+def show_custom_instructions(mode: str, active: bool) -> None:
+    status = "[bold green]active[/bold green]" if active else "[gray]none[/gray]"
+    console.print(f"[gray]{mode} instructions:[/gray] {status}")
+
+
 def show_error(message: str) -> None:
     console.print(f"[bold red]{message}[/bold red]")
 

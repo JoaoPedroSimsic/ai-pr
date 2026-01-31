@@ -43,7 +43,7 @@ class GitCLIAdapter(GitRepositoryPort):
         return result or ""
 
     def get_commits(self, base_branch: str) -> str:
-        result = self.terminal.run(["git", "log", f"{base_branch}..HEAD", "--oneline"])
+        result = self.terminal.run(["git", "log", f"origin/{base_branch}..HEAD", "--oneline"])
         return result or ""
 
     def get_diff(self, base_branch: str) -> str:

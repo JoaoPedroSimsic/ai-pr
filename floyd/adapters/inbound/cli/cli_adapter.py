@@ -2,6 +2,7 @@ import sys
 
 from floyd.adapters.inbound.cli import ui
 from floyd.application.ports.inbound.pr_generation_port import PRGenerationPort
+from floyd.application.ports.outbound.config_port import ConfigPort
 from floyd.application.ports.outbound.git_repository_port import GitRepositoryPort
 from floyd.domain.exceptions.domain_exception import DomainException
 from floyd.domain.exceptions.git.invalid_branch_exception import InvalidBranchException
@@ -19,9 +20,11 @@ class CLIAdapter:
         self,
         pr_generation_service: PRGenerationPort,
         git_repository: GitRepositoryPort,
+        config: ConfigPort,
     ) -> None:
         self._pr_service = pr_generation_service
         self._git_repository = git_repository
+        self._config = config
 
     def run(self, args: list[str]) -> int:
         if len(args) < 1:
@@ -34,6 +37,9 @@ class CLIAdapter:
 
         ui.show_icon()
 
+        ai_config = self._config.get_ai_config()
+        ui.show_config(ai_config.provider.value, ai_config.model)
+
         mode = args[0].lower()
 
         try:
@@ -41,8 +47,10 @@ class CLIAdapter:
                 if len(args) < 2:
                     ui.show_warning("Usage: floyd pr <target-branch>")
                     return 1
+                ui.show_custom_instructions("PR", bool(ai_config.pr_instructions))
                 return self._run_pr_workflow(args[1])
             elif mode == "commit":
+                ui.show_custom_instructions("Commit", bool(ai_config.commit_instructions))
                 return self._run_commit_workflow()
             else:
                 ui.show_error(f"Unknown mode: {mode}. Use 'pr' or 'commit'.")
@@ -176,6 +184,7 @@ def main() -> None:
         cli = CLIAdapter(
             pr_generation_service=container.pr_generation_service,
             git_repository=container.git_repository,
+            config=container.config,
         )
 
         sys.exit(cli.run(sys.argv[1:]))
