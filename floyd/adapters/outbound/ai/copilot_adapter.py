@@ -5,15 +5,14 @@ from floyd.domain.entities.git_context import GitContext
 from floyd.domain.entities.pull_request import PullRequest
 
 
-class ClaudeAdapter(AIAdapter):
+class CopilotAdapter(AIAdapter):
 
     def _build_command(self, config: AIConfig) -> list[str]:
-        command = ["claude"]
+        command = ["copilot", "-p", "-"]
 
         if config.model:
             command.extend(["--model", config.model])
 
-        command.extend(["-p", "-"])
         return command
 
     def generate_pr(
@@ -24,7 +23,7 @@ class ClaudeAdapter(AIAdapter):
     ) -> PullRequest:
         prompt = self._build_pr_prompt(context, config, feedback)
         command = self._build_command(config)
-        response = self.terminal.run(command, input_data=prompt, error_msg="Claude Code")
+        response = self.terminal.run(command, input_data=prompt, error_msg="GitHub Copilot CLI")
         return self._parse_response(response, context.current_branch.name)
 
     def generate_commit(
@@ -35,5 +34,5 @@ class ClaudeAdapter(AIAdapter):
     ) -> Commit:
         prompt = self._build_commit_prompt(diff, config, feedback)
         command = self._build_command(config)
-        response = self.terminal.run(command, input_data=prompt, error_msg="Claude Code")
+        response = self.terminal.run(command, input_data=prompt, error_msg="GitHub Copilot CLI")
         return self._parse_commit_response(response)

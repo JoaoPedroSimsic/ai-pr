@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from floyd.adapters.outbound.ai.claude_adapter import ClaudeAdapter
+from floyd.adapters.outbound.ai.copilot_adapter import CopilotAdapter
 from floyd.adapters.outbound.ai.gemini_adapter import GeminiAdapter
 from floyd.adapters.outbound.config.toml_config_adapter import TomlConfigAdapter
 from floyd.adapters.outbound.git.git_cli_adapter import GitCLIAdapter
@@ -9,6 +10,7 @@ from floyd.application.ports.outbound.ai_service_port import AIServicePort
 from floyd.application.ports.outbound.config_port import ConfigPort
 from floyd.application.ports.outbound.git_repository_port import GitRepositoryPort
 from floyd.application.ports.outbound.pr_repository_port import PRRepositoryPort
+from floyd.application.services.environment_validator import EnvironmentValidator
 from floyd.application.services.pr_generation_service import PRGenerationService
 from floyd.adapters.outbound.utils.terminal import Terminal
 from floyd.domain.exceptions.ai.invalid_provider_exception import (
@@ -29,18 +31,21 @@ class Container:
 def create_container() -> Container:
     terminal = Terminal()
     config = TomlConfigAdapter()
+    validator = EnvironmentValidator(terminal)
+
+    validator.validate_core_dependencies()
 
     settings = config.get_ai_config()
+
+    validator.validate_ai_provider(settings.provider)
 
     ADAPTER_MAP = {
         ProviderType.CLAUDE: ClaudeAdapter,
         ProviderType.GEMINI: GeminiAdapter,
+        ProviderType.COPILOT: CopilotAdapter,
     }
 
-    try:
-        adapter_class = ADAPTER_MAP.get(settings.provider)
-    except ValueError:
-        adapter_class = None
+    adapter_class = ADAPTER_MAP.get(settings.provider)
 
     if not adapter_class:
         raise InvalidProviderException(f"No adapter registered for {settings.provider}")
