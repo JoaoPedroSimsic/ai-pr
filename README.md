@@ -1,278 +1,118 @@
-# Floyd - AI-Powered Pull Request Generator
+# Floyd
 
-Floyd is a command-line tool that leverages Claude AI to automatically generate high-quality pull request titles and descriptions based on your git changes. It analyzes your commits, diffs, and file changes to create professional PRs following conventional commit standards.
+Floyd is a CLI tool that generates pull request descriptions and commit messages using AI CLI tools — not APIs. It wraps tools like Claude Code, Gemini CLI, and GitHub Copilot CLI to analyze your git changes and produce conventional-commit-style output, then creates PRs via GitHub CLI.
+
+The idea is simple: if you already have an AI CLI tool installed, Floyd can use it to automate the tedious parts of your git workflow without requiring API keys or token management.
 
 ## Features
 
-- 🤖 **AI-Powered Analysis**: Uses Claude to analyze your code changes and generate comprehensive PR descriptions
-- 📝 **Conventional Commits**: Automatically formats PR titles following conventional commit standards (feat:, fix:, docs:, etc.)
-- 🎨 **Beautiful CLI**: Rich, colorful terminal interface with gradient ASCII art
-- ♻️ **Iterative Refinement**: Refine generated PRs with natural language feedback
-- ⚙️ **Configurable**: Customize AI behavior with custom instructions and diff size limits
-- 🔍 **Smart Context**: Analyzes commit history, file stats, and diffs for accurate descriptions
-- 🚀 **GitHub Integration**: Seamlessly creates PRs via GitHub CLI
+- **Multiple AI providers** — works with Claude, Gemini, or GitHub Copilot CLI tools
+- **PR generation** — analyzes diffs, commits, and file stats to generate PR titles and descriptions
+- **Commit message generation** — generates commit messages from staged changes
+- **Iterative refinement** — refine generated output with natural language feedback before accepting
+- **Configurable** — custom instructions, diff size limits, and model selection per provider
 
 ## Prerequisites
 
-- Python 3.14 or higher
-- Git
-- [GitHub CLI (gh)](https://cli.github.com/) - for creating pull requests
-- [Claude CLI](https://docs.anthropic.com/en/docs/claude-code/cli) - for AI generation
+- Python 3.14+
+- [Git](https://git-scm.com/)
+- [GitHub CLI (`gh`)](https://cli.github.com/) — for creating pull requests
+- At least one AI CLI tool:
+  - [Claude Code (`claude`)](https://docs.anthropic.com/en/docs/claude-code/cli)
+  - [Gemini CLI (`gemini`)](https://github.com/google-gemini/gemini-cli)
+  - [GitHub Copilot CLI (`copilot`)](https://docs.github.com/en/copilot/github-copilot-in-the-cli)
 
 ## Installation
-
-Install Floyd from PyPI using pip:
 
 ```bash
 pip install floyd-pr-generator
 ```
 
-Verify installation:
-```bash
-floyd --help
-```
-
 ## Configuration
 
-Floyd can be configured using a TOML configuration file. The configuration file should be placed at:
+Create a config file at:
 
 - **Linux/macOS**: `~/.config/floyd.toml`
 - **Windows**: `C:\AppData\Roaming\floyd\floyd.toml`
 
-### Configuration Options
-
-Create a `floyd.toml` file with the following structure:
-
 ```toml
 [ai]
-# Maximum character limit for git diffs (prevents token limit issues)
-# Set to -1 for no limit
-diff_limit = 50000
+provider = "claude"          # "claude", "gemini", or "copilot"
+model = "claude-opus-4-5"   # optional, provider-specific model override
+diff_limit = 50000           # max diff size in chars, -1 for unlimited
 
-# Custom instructions to guide the AI's PR generation
-# This will be appended to the AI prompt
-instructions = """
-- Focus on business impact in the description
-- Include any breaking changes at the top
-- Mention related ticket numbers if present in commits
-- Keep descriptions concise but informative
+# optional per-workflow instructions appended to the AI prompt
+pr_instructions = """
+- Focus on business impact
+- Include breaking changes at the top
+"""
+
+commit_instructions = """
+- Use abbreviated prefixes
+- Keep descriptions concise
 """
 ```
 
-### Configuration Parameters
-
-#### `diff_limit` (integer)
-- **Purpose**: Limits the size of git diffs sent to Claude to prevent token limit issues
-- **Default**: `-1` (no limit)
-- **Recommended**: `50000` for most projects
-- **Example**: `diff_limit = 50000`
-
-#### `instructions` (string)
-- **Purpose**: Provide custom guidance to Claude for generating PRs
-- **Format**: Multi-line string
-- **Use cases**:
-  - Enforce team-specific PR conventions
-  - Highlight certain types of changes
-  - Include specific formatting requirements
-  - Add context about your project's workflow
-
-### Example Configurations
-
-#### Minimal Configuration
-```toml
-[ai]
-diff_limit = 50000
-```
-
-#### Comprehensive Configuration
-```toml
-[ai]
-diff_limit = 50000
-instructions = """
-PR Description Guidelines:
-- Start with a brief summary of what changed and why
-- List breaking changes first with ⚠️ emoji
-- Group related changes by feature area
-- Include ticket references (e.g., JIRA-123)
-- Mention any migration steps required
-- Keep technical details but make them accessible
-- Add testing instructions if relevant
-"""
-```
-
-#### Team-Specific Configuration
-```toml
-[ai]
-diff_limit = 75000
-instructions = """
-Team Standards:
-- Follow our internal PR template structure
-- Highlight security implications
-- Mention performance impacts
-- Reference design docs when applicable
-- Tag relevant team members in description
-- Include rollback plan for infrastructure changes
-"""
-```
+Only `provider` is required. Everything else has sensible defaults.
 
 ## Usage
 
-### Basic Usage
-
-Navigate to your git repository and run:
+### Generate a pull request
 
 ```bash
-floyd <target-branch>
+floyd pr <target-branch>
 ```
 
-Example:
+This fetches the diff between your current branch and the target, sends it to the configured AI provider, and presents a draft PR for review. You can then create it, refine it with feedback, or cancel.
+
+### Generate a commit message
+
 ```bash
-floyd main
+floyd commit
 ```
 
-This will:
-1. Fetch the diff between your current branch and the target branch
-2. Analyze recent commits and file changes
-3. Generate a PR title and description using Claude
-4. Display the draft for review
-5. Offer options to create, refine, or cancel
+This reads your staged changes (`git diff --cached`), generates a conventional commit message, and lets you review it before committing.
 
 ### Workflow
 
-1. **Review Generated Draft**: Floyd displays the AI-generated PR title and body in a formatted panel
+Both commands follow the same interactive loop:
 
-2. **Choose Action**:
-   - **Create Pull Request**: Immediately create the PR on GitHub
-   - **Refine Draft**: Provide feedback in natural language to improve the draft
-   - **Cancel**: Exit without creating a PR
+1. Floyd gathers git context (diff, commits, file stats)
+2. The AI provider generates a title and body
+3. You review the draft in a formatted panel
+4. Choose to **accept**, **refine** (with feedback), or **cancel**
 
-3. **Iterative Refinement** (optional):
-   - If you choose "Refine Draft", you can provide feedback like:
-     - "Make the description more technical"
-     - "Add more details about the authentication changes"
-     - "Keep it shorter and more concise"
-     - "Emphasize the performance improvements"
+## How it works
 
-### Example Session
+Floyd shells out to your chosen AI CLI tool with a structured prompt. It does not call any AI API directly — it relies entirely on the CLI tools being installed and authenticated on your system.
 
-```bash
-$ floyd main
+The prompt includes your branch name, commit history, diff stats, and the full diff (truncated to `diff_limit` if set). The AI response is parsed for `TITLE:` and `BODY:` markers to extract the generated content.
 
- ███████████ █████          ███████    █████ █████ ██████████  
-░░███░░░░░░█░░███         ███░░░░░███ ░░███ ░░███ ░░███░░░░███ 
- ░███   █ ░  ░███        ███     ░░███ ░░███ ███   ░███   ░░███
- ░███████    ░███       ░███      ░███  ░░█████    ░███    ░███
- ░███░░░█    ░███       ░███      ░███   ░░███     ░███    ░███
- ░███  ░     ░███      █░░███     ███     ░███     ░███    ███ 
- █████       ███████████ ░░░███████░      █████    ██████████  
-░░░░░       ░░░░░░░░░░░    ░░░░░░░       ░░░░░    ░░░░░░░░░░   
+For PR creation, Floyd calls `gh pr create` with the generated title and body. For commits, it runs `git commit` with the generated message.
 
-'diff_limit' loaded with value: 50000
-'instructions' loaded with value: Focus on business impact in...
-Successfully fetched branch diff
-Successfully generated a PR.
-
-╭─ Draft Pull Request ───────────────────────────────────────────────────╮
-│ Title: feat: add user authentication system                            │
-│                                                                        │
-│ Body:                                                                  │
-│ This PR introduces a comprehensive user authentication system with:    │
-│ - JWT-based token authentication                                       │
-│ - Password hashing with bcrypt                                         │
-│ - Session management                                                   │
-│ - Login/logout endpoints                                               │
-│                                                                        │
-│ Breaking Changes:                                                      │
-│ - API endpoints now require authentication headers                     │
-│ - Database schema updated with users table                             │
-╰────────────────────────────────────────────────────────────────────────╯
-
-? What would you like to do?
-  ❯ Create Pull Request
-    Refine Draft
-    Cancel
-```
-
-## How It Works
-
-1. **Git Analysis**: Floyd examines your current branch against the target branch to gather:
-   - Commit history
-   - File change statistics
-   - Detailed code diffs
-
-2. **AI Processing**: The information is sent to Claude with:
-   - Your custom instructions (if configured)
-   - Context about the branch and commits
-   - Conventional commit formatting requirements
-
-3. **PR Generation**: Claude generates:
-   - A conventional commit-formatted title
-   - A comprehensive description of changes
-   - Context-aware content based on commit messages
-
-4. **Interactive Review**: You can:
-   - Accept and create the PR immediately
-   - Request refinements with natural language
-   - Cancel if needed
-
-## Project Structure
+## Project structure
 
 ```
 floyd/
-├── __init__.py          # Package initialization
-├── cli.py              # Command-line interface entry point
-├── git.py              # Git operations (diff, commits, branches)
-├── models.py           # AI model interaction and response parsing
-├── ui.py               # Rich terminal UI components
-├── utils.py            # Utilities (config loading, command execution)
-└── workflow.py         # Main PR generation workflow
+├── domain/              # Business entities and exceptions
+│   ├── entities/        # PullRequest, Commit, GitContext, Branch
+│   ├── value_objects/   # ProviderType enum, Branch
+│   └── exceptions/      # Domain-specific errors
+├── application/         # Use cases and port interfaces
+│   ├── services/        # PR generation, environment validation
+│   ├── ports/           # Inbound/outbound interfaces
+│   └── dto/             # Configuration data structures
+└── adapters/            # Infrastructure implementations
+    ├── inbound/cli/     # CLI entry point and terminal UI
+    └── outbound/        # AI, Git, GitHub, and config adapters
 ```
-
-## Error Handling
-
-Floyd handles various error scenarios gracefully:
-
-- **Not a Git Repository**: Validates you're in a git repository before proceeding
-- **Branch Doesn't Exist**: Checks if the target branch exists on origin
-- **PR Already Exists**: Prevents duplicate PRs for the same branch combination
-- **Claude CLI Not Available**: Alerts if the Claude CLI isn't installed or accessible
-- **Parsing Errors**: Handles unexpected AI response formats
-
-## Dependencies
-
-- **rich**: Beautiful terminal formatting and UI components
-- **questionary**: Interactive CLI prompts
-- **setuptools**: Package management
-- **pathlib**: Cross-platform path handling
 
 ## Troubleshooting
 
-### "This directory is not a git repository"
-Make sure you're running Floyd from within a git repository.
+**"This directory is not a git repository"** — run Floyd from inside a git repo.
 
-### "The 'claude' command failed to execute"
-Ensure the Claude CLI is installed and available in your PATH. Visit [Claude CLI documentation](https://docs.anthropic.com/en/docs/claude-code/cli) for installation instructions.
+**"The 'claude' command failed to execute"** — make sure the configured AI CLI tool is installed and available in your `PATH`.
 
-### "The branch 'X' does not exist on origin"
-The target branch must exist on the remote repository. Push your target branch first or use a different branch name.
+**"The branch 'X' does not exist on origin"** — the target branch must exist on the remote. Push it first or use a different branch.
 
-### Configuration not loading
-Verify your config file is at the correct location:
-- Linux/macOS: `~/.config/floyd.toml`
-- Windows: `C:\AppData\Roaming\floyd\floyd.toml`
-
-Check the file has correct TOML syntax.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues, fork the repository, and create pull requests.
-
-## Acknowledgments
-
-- Built with [Anthropic's Claude AI](https://www.anthropic.com/claude)
-- Uses [GitHub CLI](https://cli.github.com/) for PR creation
-- Terminal UI powered by [Rich](https://github.com/Textualize/rich)
-
----
-
-**Note**: Floyd requires the Claude CLI and GitHub CLI to be properly configured on your system. Make sure you're authenticated with both services before using Floyd.
+**Config not loading** — verify the file is at `~/.config/floyd.toml` (Linux/macOS) or `C:\AppData\Roaming\floyd\floyd.toml` (Windows) and has valid TOML syntax.
