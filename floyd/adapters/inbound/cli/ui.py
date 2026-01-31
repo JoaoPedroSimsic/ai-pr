@@ -9,6 +9,7 @@ from rich.prompt import Prompt
 from rich.status import Status
 from rich.text import Text
 
+from floyd.domain.entities.commit import Commit
 from floyd.domain.entities.pull_request import PullRequest
 
 console = Console()
@@ -138,6 +139,57 @@ def display_draft(pr: PullRequest) -> None:
             padding=padding,
         )
     )
+
+
+def display_commit_draft(commit: Commit) -> None:
+    padding = (1, 3)
+
+    console.print(
+        Panel(
+            Text(commit.title, style="white"),
+            title=_get_gradient_text(" Title "),
+            title_align="left",
+            border_style=MAIN_COLOR,
+            padding=padding,
+        )
+    )
+
+    if commit.body:
+        console.print(
+            Panel(
+                commit.body,
+                title=_get_gradient_text(" Body "),
+                title_align="left",
+                border_style=MAIN_COLOR,
+                padding=padding,
+            )
+        )
+
+
+def get_commit_action_choice() -> str | None:
+    custom_style = questionary.Style(
+        [
+            ("qmark", f"fg:{SEC_COLOR} bold"),
+            ("question", "bold"),
+            ("pointer", f"fg:{MAIN_COLOR} bold"),
+            ("highlighted", f"fg:{MAIN_COLOR} bold"),
+            ("selected", f"fg:{MAIN_COLOR}"),
+            ("answer", f"fg:{SEC_COLOR} bold"),
+        ]
+    )
+
+    result: str | None = questionary.select(
+        "What would you like to do?",
+        choices=[
+            questionary.Choice(title="Commit Changes", value="create"),
+            questionary.Choice(title="Refine Message", value="refine"),
+            questionary.Choice(title="Cancel", value="cancel"),
+        ],
+        style=custom_style,
+        pointer="❯",
+    ).ask()
+
+    return result
 
 
 def get_refinement_feedback() -> str:

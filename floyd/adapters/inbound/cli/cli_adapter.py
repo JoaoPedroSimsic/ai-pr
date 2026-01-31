@@ -24,8 +24,8 @@ class CLIAdapter:
         self._git_repository = git_repository
 
     def run(self, args: list[str]) -> int:
-        if len(args) < 2:
-            ui.show_warning("Usage: floyd <pr|commit> <target-branch>")
+        if len(args) < 1:
+            ui.show_warning("Usage: floyd <pr|commit> [target-branch]")
             return 1
 
         if not self._git_repository.is_git_repo():
@@ -35,11 +35,13 @@ class CLIAdapter:
         ui.show_icon()
 
         mode = args[0].lower()
-        target_branch = args[1]
 
         try:
             if mode == "pr":
-                return self._run_pr_workflow(target_branch)
+                if len(args) < 2:
+                    ui.show_warning("Usage: floyd pr <target-branch>")
+                    return 1
+                return self._run_pr_workflow(args[1])
             elif mode == "commit":
                 return self._run_commit_workflow()
             else:
@@ -87,7 +89,7 @@ class CLIAdapter:
         while True:
             with ui.show_loading("Generating PR draft..."):
                 try:
-                    pr = self._pr_service.generate_draft(context, feedback)
+                    pr = self._pr_service.generate_pr_draft(context, feedback)
                     ui.show_info("PR draft created successfully.")
                 except PRGenerationException as e:
                     ui.show_error(f"Failed to generate PR: {e.message}")
@@ -125,42 +127,44 @@ class CLIAdapter:
 
         return 0
 
+    def _run_commit_workflow(self) -> int:
+        diff = self._git_repository.get_staged_diff()
 
-def _run_commit_workflow(self) -> int:
-    diff = self._git_repository.get_staged_diff()
+        if not diff or not diff.strip():
+            ui.show_warning("No staged changes found. Use 'git add' to stage files first.")
+            return 1
 
-    if not diff or not diff.strip():
-        ui.show_warning("No staged changes found. Use 'git add' to stage files first.")
-        return 1
+        ui.show_info("Staged changes detected.")
+        feedback: str | None = None
 
-    ui.show_info("Staged changes detected.")
-    feedback: str | None = None
+        while True:
+            with ui.show_loading("Generating commit message..."):
+                try:
+                    commit_draft = self._pr_service.generate_commit(diff, feedback)
+                except PRGenerationException as e:
+                    ui.show_error(f"Failed to generate commit: {e.message}")
+                    return 1
+                except DomainException as e:
+                    ui.show_error(e.message)
+                    return 1
 
-    while True:
-        with ui.show_loading("Generating commit message..."):
-            try:
-                commit_draft = self._pr_service_generate_commit(diff, feedback)
-            except Exception as e:
-                ui.show_error(f"Failed to generate commit: {str(e)}")
-                return 1
+            ui.display_commit_draft(commit_draft)
+            choice = ui.get_commit_action_choice()
 
-        ui.display_draft(commit_draft)
-        
-        choice = ui.get_action_choice()
+            if choice == "create":
+                with ui.show_loading("Committing changes..."):
+                    self._git_repository.commit(commit_draft)
+                    ui.show_success("Changes committed successfully.")
+                break
+            elif choice == "refine":
+                feedback = ui.get_refinement_feedback()
+                ui.show_info("Regenerating with your feedback...")
+                continue
+            else:
+                ui.show_warning("Commit cancelled.")
+                break
 
-        if choice == "create":
-            with ui.show_loading("Committing changes..."):
-                self._git_repository.commit(commit_draft)
-                ui.show_success("Changes committed successfully.")
-            break
-        elif choice == "refine":
-            feedback = ui.get_refinement_feedback()
-            continue
-        else:
-            ui.show_warning("Commit cancelled")
-            break
-
-    return 0
+        return 0
 
 
 def main() -> None:
